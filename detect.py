@@ -17,7 +17,12 @@ class VehicleTracker:
     def __init__(self, confidence_threshold=0.4, max_disappeared=30*10):
         # Initialize YOLO model with GPU support
         self.notifier = Notifier()
-        self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        if torch.backends.mps.is_available() and torch.backends.mps.is_built():
+            self.device = torch.device("mps")
+        elif torch.cuda.is_available():
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
         print(f"Using device: {self.device}")
         self.notifier.speak("Detection Initiated")
         # Load YOLO model
