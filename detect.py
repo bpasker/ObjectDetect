@@ -4,20 +4,27 @@ import cv2
 import numpy as np
 from collections import defaultdict
 import time
-import subprocess
+import pyttsx3
 
 class Notifier:
     def __init__(self):
         pass
 
     def speak(self, text):
-        subprocess.run(['say', text])
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
 
 class VehicleTracker:
     def __init__(self, confidence_threshold=0.4, max_disappeared=30*10):
         # Initialize YOLO model with GPU support
         self.notifier = Notifier()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.backends.mps.is_available() and torch.backends.mps.is_built():
+            self.device = torch.device("mps")
+        elif torch.cuda.is_available():
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
         print(f"Using device: {self.device}")
         self.notifier.speak("Detection Initiated")
         # Load YOLO model
@@ -91,7 +98,7 @@ class VehicleTracker:
                     break
             
             if not matched:
-                self.notifier.speak("Vehicle Arriving")
+                #self.notifier.speak("Vehicle Arriving")
                 self.vehicles[self.next_vehicle_id] = {
                     "box": box,
                     "disappeared": 0
@@ -148,9 +155,9 @@ class VehicleTracker:
 def main():
     # Initialize tracker
     tracker = VehicleTracker()
-    
+   
     # Access RTSP stream
-    cap = cv2.VideoCapture('rtsp://192.168.1.1:7447/5EPTINH0aTXqTqC3')
+    cap = cv2.VideoCapture('rtsps://192.168.1.1:7441/nIyjKivAgS74WEQb?enableSrtp')
     
     # Set buffer size
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
